@@ -5,14 +5,12 @@ jupytext:
   text_representation:
     extension: .md
     format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.19.5
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
-language_info:
-  name: python
-  pygments_lexer: ipython3
-  nbconvert_exporter: python
 ---
 
 # TP on the moon
@@ -48,7 +46,8 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 1. importez les librairies `pandas` et `numpy`
 
 ```{code-cell} ipython3
-# votre code
+import pandas as pd
+import numpy as np
 ```
 
 ## 2. read
@@ -57,7 +56,9 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2.  affichez sa taille et regardez quelques premières lignes
 
 ```{code-cell} ipython3
-# votre code
+doc=pd.read_csv('data/objects-on-the-moon.csv')
+print(len(doc))
+doc.head(10)
 ```
 
 ## 3. drop
@@ -66,7 +67,7 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    utiliser la méthode `drop` des dataframes pour supprimer cette colonne de votre dataframe
 
 ```{code-cell} ipython3
-# votre code
+doc = doc.drop(columns='Unnamed: 0')
 ```
 
 ## 4. info
@@ -75,7 +76,7 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. remarquez une colonne entièrement vide
 
 ```{code-cell} ipython3
-# votre code
+doc.info()
 ```
 
 ## 5. dropna
@@ -85,7 +86,11 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. vérifiez que vous avez bien enlevé la colonne `'Size'`
 
 ```{code-cell} ipython3
-# votre code
+doc = doc.dropna(axis=1,how='all')
+```
+
+```{code-cell} ipython3
+doc.head()
 ```
 
 ## 6. dropna (2)
@@ -96,7 +101,11 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    (et de nouveau sans faire référence à une ligne en particulier)
 
 ```{code-cell} ipython3
-# votre code
+doc.loc[88]
+```
+
+```{code-cell} ipython3
+doc = doc.dropna(axis=0,how='all')
 ```
 
 ## 7. dtypes
@@ -105,7 +114,7 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. que remarquez vous sur la colonne des masses ?
 
 ```{code-cell} ipython3
-# votre code
+doc.dtypes #la masse est stockée comme chaine de caractères
 ```
 
 ## 8. unique
@@ -114,7 +123,7 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. que remarquez vous ?
 
 ```{code-cell} ipython3
-# votre code
+pd.unique(doc['Mass (lb)']) #certaines masses sont parfois connues comparativement, d'où l'intérêt du str
 ```
 
 ## 9. to_numeric
@@ -127,7 +136,34 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 1. combien y a-t-il de données manquantes dans cette colonne ?
 
 ```{code-cell} ipython3
-# votre code
+doc['Mass (lb) orig']=doc['Mass (lb)'].copy()
+```
+
+```{code-cell} ipython3
+doc.head(5)
+```
+
+```{code-cell} ipython3
+doc['Mass (lb)'] = pd.to_numeric(doc['Mass (lb)'],errors='coerce')
+```
+
+```{code-cell} ipython3
+doc.dtypes
+```
+
+```{code-cell} ipython3
+df = pd.read_csv('data/objects-on-the-moon.csv')
+df=df.drop(columns = 'Unnamed: 0')
+df=df.dropna(how='all')
+df=df.dropna(axis=1,how='all')
+```
+
+```{code-cell} ipython3
+df.head()
+```
+
+```{code-cell} ipython3
+df.dtypes
 ```
 
 ## 10. replace
@@ -156,7 +192,20 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
     ````
 
 ```{code-cell} ipython3
-# votre code
+df['Mass (lb)'] = df['Mass (lb)'].str.replace("<" , "")
+df['Mass (lb)'] = df['Mass (lb)'].str.replace(">" , "")
+```
+
+```{code-cell} ipython3
+df['Mass (lb)'] = df['Mass (lb)'].astype(int)
+```
+
+```{code-cell} ipython3
+pd.unique(df['Mass (lb)'])
+```
+
+```{code-cell} ipython3
+df.head()
 ```
 
 ## 11. convert
@@ -166,7 +215,8 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    arrondissez les flottants en entiers en utilisant `astype`
 
 ```{code-cell} ipython3
-# votre code
+df['Mass (kg)'] = (df['Mass (lb)'].copy()/2.205).astype(int)
+df.head()
 ```
 
 ## 12. countries
@@ -180,7 +230,14 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    ```
 
 ```{code-cell} ipython3
-# votre code
+pd.unique(df['Country'])
+```
+
+```{code-cell} ipython3
+total = len(df['Country'])
+for country in pd.unique(df['Country']):
+    pourcents=int(100*(df['Country'] == country).sum()/total)
+    print(f"{country} a laissé sur la lune {pourcents}% des objets")
 ```
 
 ## 13. total
@@ -189,7 +246,8 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. quel est le poids total des objets laissés par les `United States`  ?
 
 ```{code-cell} ipython3
-# votre code
+print(f"le poids total sur la lune est de {df['Mass (kg)'].sum()} kg")
+print(f"united states a laissé {df[df['Country']=='United States']['Mass (kg)'].sum()} kg sur la lune") #cela crée aussi deux objets hélas
 ```
 
 ## 14. blame
@@ -202,7 +260,7 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    ````
 
 ```{code-cell} ipython3
-# votre code
+df.iloc[df['Mass (lb)'].argmin()]['Country'] #cela crée aussi deux objets hélas
 ```
 
 ## 15. memorial
@@ -216,7 +274,11 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
 2. quel est le pays qui a mis ce mémorial ?
 
 ```{code-cell} ipython3
-# votre code
+df['Artificial object'].str.contains("Memorial").any() #Mettre la méthode .contains dans le hint m'aurait gagné un peu de temps et de stress...
+```
+
+```{code-cell} ipython3
+df[df['Artificial object'].str.contains("Memorial")]['Country']
 ```
 
 ## 16.  tolist
@@ -228,7 +290,8 @@ il y a aussi la méthode *old-school* qui consiste à appeler `help(une_fonction
    ```
 
 ```{code-cell} ipython3
-# votre code
+L = df['Artificial object'].to_list()
+print(L)
 ```
 
 ***
